@@ -56,7 +56,7 @@ if __name__ == "__main__":
     tracker = Sort(max_age=20, min_hits=3, iou_threshold=0.3)
 
     # Define counting line coordinates [x1, y1, x2, y2]
-    limits = [400, 297, 673, 297]
+    limits = [0, 450, 640, 450]
     totalCount = []
 
     while True:
@@ -64,11 +64,11 @@ if __name__ == "__main__":
         if not success:
             print("Error: Could not read frame from video")
             break
-        
+
         # Resize mask to match frame size if needed
         if mask.shape != img.shape:
             mask = cv2.resize(mask, (img.shape[1], img.shape[0]))
-        
+
         # Apply mask to the frame
         try:
             imgRegion = cv2.bitwise_and(img, mask)
@@ -154,3 +154,6 @@ if __name__ == "__main__":
     if out is not None:
         out.release()
     cv2.destroyAllWindows()
+
+    # Print the final count
+    print(f"Total vehicles counted: {len(totalCount)}")

@@ -1,14 +1,24 @@
+import argparse
 from ultralytics import YOLO
 import cv2
 import cvzone
 import math
 import PokerHandFunction
- 
+
 if __name__ == "__main__":
-    cap = cv2.VideoCapture(0)  # For Webcam
-    cap.set(3, 1280)
-    cap.set(4, 720)
-    model = YOLO("playingCards.pt")
+    parser = argparse.ArgumentParser(description="Poker Card Detection")
+    parser.add_argument('--input', type=str, help='Input video file path (leave empty for webcam)')
+    parser.add_argument('--output', type=str, help='Output video file path')
+    args = parser.parse_args()
+
+    if args.input:
+        cap = cv2.VideoCapture(args.input)
+    else:
+        cap = cv2.VideoCapture(0)  # For Webcam
+        cap.set(3, 1280)
+        cap.set(4, 720)
+
+    model = YOLO("project-4_poker_card_detection/playingCards.pt")
     classNames = [
         '10C', '10D', '10H', '10S',
         '2C', '2D', '2H', '2S',
@@ -23,8 +33,20 @@ if __name__ == "__main__":
         'JC', 'JD', 'JH', 'JS',
         'KC', 'KD', 'KH', 'KS',
         'QC', 'QD', 'QH', 'QS']
+
+    if args.output:
+        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+        fps = int(cap.get(cv2.CAP_PROP_FPS)) or 30
+        width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+        height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        out = cv2.VideoWriter(args.output, fourcc, fps, (width, height))
+    else:
+        out = None
+
     while True:
         success, img = cap.read()
+        if not success:
+            break
         results = model(img, stream=True)
         hand = []
         for r in results:
@@ -40,16 +62,12 @@ if __name__ == "__main__":
                 conf = math.ceil((box.conf[0] * 100)) / 100
                 # Class Name
                 cls = int(box.cls[0])
- 
+
                 cvzone.putTextRect(img, f'{classNames[cls]} {conf}', (max(0, x1), max(35, y1)), scale=1, thickness=1)
- 
+
                 if conf > 0.5:
                     hand.append(classNames[cls])
 
-        # Wait for 1 ms and check if 'q' is pressed to quit
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
- 
         print(hand)
         hand = list(set(hand))
         print(hand)
@@ -59,6 +77,16 @@ if __name__ == "__main__":
             # Display the detected poker hand result on the top-left for better visibility
             cvzone.putTextRect(img, f'Your Hand: {results}', (30, 75), scale=2, thickness=4)
 
-        # Show the webcam image with all detections and results
-        cv2.imshow("Image", img)
-        cv2.waitKey(1)
+        if out:
+            out.write(img)
+        else:
+            # Show the webcam image with all detections and results
+            cv2.imshow("Image", img)
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
+
+    cap.release()
+    if out:
+        out.release()
+    cv2.destroyAllWindows()
+    print("Poker Hand Detection Complete")

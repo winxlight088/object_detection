@@ -160,3 +160,6 @@ if __name__ == "__main__":
     if out is not None:
         out.release()
     cv2.destroyAllWindows()
+
+    # Print the final count
+    print(f"People Count: {len(totalCountUp) + len(totalCountDown)}")

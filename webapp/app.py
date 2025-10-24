@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, jsonify, redirect, url_for, s
 from werkzeug.security import generate_password_hash, check_password_hash
 import os
 import json
+import sys
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
@@ -101,18 +102,19 @@ def detect_car():
     processed_path = os.path.join(app.config['PROCESSED_FOLDER'], 'car_' + file.filename)
     # Run car_counter.py as a subprocess
     import subprocess
+    import shutil
     try:
-        # Example: python project-1_car-counter/car_counter.py --input <input> --output <output>
+        # Use sys.executable to ensure the same Python interpreter is used
         result = subprocess.run([
-            'python',
-            '../project-1_car-counter/car_counter.py',
+            sys.executable,
+            'project-1_car-counter/car_counter.py',
             '--input', filepath,
             '--output', processed_path
-        ], capture_output=True, text=True, check=True)
+        ], capture_output=True, text=True, check=True, cwd=os.getcwd())
         # Optionally parse stdout for car count
         car_count = 0
         for line in result.stdout.splitlines():
-            if 'Car Count:' in line:
+            if 'Total vehicles counted:' in line:
                 try:
                     car_count = int(line.split(':')[-1].strip())
                 except Exception:
@@ -122,7 +124,7 @@ def detect_car():
         car_count = 0
         status = f'Error: {e.stderr}'
         # fallback: copy input to output
-        os.system(f'cp "{filepath}" "{processed_path}"')
+        shutil.copy(filepath, processed_path)
     return jsonify({'output_url': '/' + processed_path, 'count': car_count, 'status': status})
 
 @app.route('/detect/people', methods=['POST'])
@@ -133,13 +135,14 @@ def detect_people():
     file.save(filepath)
     processed_path = os.path.join(app.config['PROCESSED_FOLDER'], 'people_' + file.filename)
     import subprocess
+    import shutil
     try:
         result = subprocess.run([
-            'python',
-            '../project-2_people-counter/people_counter.py',
+            sys.executable,
+            'project-2_people-counter/people_counter.py',
             '--input', filepath,
             '--output', processed_path
-        ], capture_output=True, text=True, check=True)
+        ], capture_output=True, text=True, check=True, cwd=os.getcwd())
         people_count = 0
         for line in result.stdout.splitlines():
             if 'People Count:' in line:
@@ -151,7 +154,7 @@ def detect_people():
     except subprocess.CalledProcessError as e:
         people_count = 0
         status = f'Error: {e.stderr}'
-        os.system(f'cp "{filepath}" "{processed_path}"')
+        shutil.copy(filepath, processed_path)
     return jsonify({'output_url': '/' + processed_path, 'count': people_count, 'status': status})
 
 @app.route('/detect/construction', methods=['POST'])
@@ -162,17 +165,18 @@ def detect_construction():
     file.save(filepath)
     processed_path = os.path.join(app.config['PROCESSED_FOLDER'], 'ppe_' + file.filename)
     import subprocess
+    import shutil
     try:
         result = subprocess.run([
-            'python',
-            '../project-3_construction/ppe_detection.py',
+            sys.executable,
+            'project-3_construction/ppe_detection.py',
             '--input', filepath,
             '--output', processed_path
-        ], capture_output=True, text=True, check=True)
+        ], capture_output=True, text=True, check=True, cwd=os.getcwd())
         status = 'Detection Complete'
     except subprocess.CalledProcessError as e:
         status = f'Error: {e.stderr}'
-        os.system(f'cp "{filepath}" "{processed_path}"')
+        shutil.copy(filepath, processed_path)
     return jsonify({'output_url': '/' + processed_path, 'status': status})
 
 @app.route('/detect/poker', methods=['POST'])
@@ -184,13 +188,14 @@ def detect_poker():
     processed_path = os.path.join(app.config['PROCESSED_FOLDER'], 'poker_' + file.filename)
     import subprocess
     import re
+    import shutil
     try:
         result = subprocess.run([
-            'python',
-            '../project-4_poker_card_detection/PokerHandDetector.py',
+            sys.executable,
+            'project-4_poker_card_detection/PokerHandDetector.py',
             '--input', filepath,
             '--output', processed_path
-        ], capture_output=True, text=True, check=True)
+        ], capture_output=True, text=True, check=True, cwd=os.getcwd())
         # Try to extract card names from stdout
         cards = []
         for line in result.stdout.splitlines():
@@ -200,7 +205,7 @@ def detect_poker():
     except subprocess.CalledProcessError as e:
         cards = []
         status = f'Error: {e.stderr}'
-        os.system(f'cp "{filepath}" "{processed_path}"')
+        shutil.copy(filepath, processed_path)
     return jsonify({'output_url': '/' + processed_path, 'cards': cards, 'status': status})
 
 @app.route('/detect/poker/webcam', methods=['POST'])
@@ -225,7 +230,8 @@ def detect_poker_webcam():
     file.save(in_memory_file)
     data = np.frombuffer(in_memory_file.getvalue(), dtype=np.uint8)
     img = cv2.imdecode(data, cv2.IMREAD_COLOR)
-    model = YOLO("../project-4_poker_card_detection/playingCards.pt")
+    model_path = os.path.join(os.path.dirname(__file__), '..', 'project-4_poker_card_detection', 'playingCards.pt')
+    model = YOLO(model_path)
     classNames = ['10C', '10D', '10H', '10S',
                   '2C', '2D', '2H', '2S',
                   '3C', '3D', '3H', '3S',

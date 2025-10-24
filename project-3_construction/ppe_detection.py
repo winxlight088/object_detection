@@ -98,3 +98,6 @@ if __name__ == "__main__":
     if out is not None:
         out.release()
     cv2.destroyAllWindows()
+
+    # Print the final count (for now, just a placeholder since PPE detection doesn't count objects)
+    print("PPE Detection Complete")

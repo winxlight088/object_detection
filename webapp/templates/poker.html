@@ -42,7 +42,8 @@
       <button id="start-poker-webcam" class="accent-btn px-4 py-2 rounded font-semibold mb-2">Start Webcam Detection</button>
       <div id="poker-webcam-area" class="mt-4 hidden w-full">
         <div class="text-center text-gray-300 mb-2">Show your cards to the webcam below:</div>
-        <img id="poker-webcam-stream" class="max-w-full rounded-xl mx-auto border-2 border-blue-400" src="/poker/stream" alt="Poker Webcam Stream" />
+        <video id="poker-webcam-video" class="max-w-full rounded-xl mx-auto border-2 border-blue-400 hidden" autoplay playsinline></video>
+        <img id="poker-webcam-stream" class="max-w-full rounded-xl mx-auto border-2 border-blue-400" src="" alt="Poker Webcam Stream" />
         <div class="mt-2 text-lg font-bold text-blue-300" id="poker-webcam-status">Show 5 cards to the camera to see your hand detected live.</div>
       </div>
       <form id="poker-form" enctype="multipart/form-data" class="hidden mb-2 w-full">
@@ -89,11 +90,7 @@
     });
 
     function startPokerWebcamDetection() {
-      const video = document.createElement('video');
-      video.setAttribute('autoplay', '');
-      video.setAttribute('playsinline', '');
-      video.width = 640;
-      video.height = 480;
+      const video = document.getElementById('poker-webcam-video');
       const imgTag = document.getElementById('poker-webcam-stream');
       let stream = null;
       let stopRequested = false;
@@ -101,6 +98,7 @@
         stream = s;
         video.srcObject = stream;
         video.play();
+        video.classList.remove('hidden');
         // Listen for 'q' key to stop webcam
         window.addEventListener('keydown', function onKey(e) {
           if (e.key === 'q' || e.key === 'Q') {
@@ -108,6 +106,7 @@
             if (stream) {
               stream.getTracks().forEach(track => track.stop());
             }
+            video.classList.add('hidden');
             imgTag.src = '';
             document.getElementById('poker-webcam-area').classList.add('hidden');
             window.removeEventListener('keydown', onKey);
@@ -115,7 +114,7 @@
         });
         sendPokerFrame();
         function sendPokerFrame() {
-          if (imgTag.closest('.hidden') || stopRequested) return; // Stop if hidden or requested
+          if (video.classList.contains('hidden') || stopRequested) return; // Stop if hidden or requested
           const canvas = document.createElement('canvas');
           canvas.width = video.videoWidth || 640;
           canvas.height = video.videoHeight || 480;
@@ -144,6 +143,9 @@
               .catch(() => setTimeout(sendPokerFrame, 1000));
           }, 'image/jpeg');
         }
+      }).catch(err => {
+        console.error('Error accessing webcam:', err);
+        document.getElementById('poker-webcam-status').textContent = 'Error: Unable to access webcam. Please check permissions.';
       });
     }
   </script>

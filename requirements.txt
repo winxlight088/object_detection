@@ -1,0 +1,7 @@
+Flask
+numpy
+ultralytics
+opencv-python
+cvzone
+filterpy
+Werkzeug
