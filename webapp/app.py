@@ -105,9 +105,10 @@ def detect_car():
     import shutil
     try:
         # Use sys.executable to ensure the same Python interpreter is used
+        script_path = os.path.join(os.path.dirname(__file__), '..', 'project-1_car-counter', 'car_counter.py')
         result = subprocess.run([
             sys.executable,
-            'project-1_car-counter/car_counter.py',
+            script_path,
             '--input', filepath,
             '--output', processed_path
         ], capture_output=True, text=True, check=True, cwd=os.getcwd())
@@ -137,9 +138,10 @@ def detect_people():
     import subprocess
     import shutil
     try:
+        script_path = os.path.join(os.path.dirname(__file__), '..', 'project-2_people-counter', 'people_counter.py')
         result = subprocess.run([
             sys.executable,
-            'project-2_people-counter/people_counter.py',
+            script_path,
             '--input', filepath,
             '--output', processed_path
         ], capture_output=True, text=True, check=True, cwd=os.getcwd())
@@ -167,9 +169,10 @@ def detect_construction():
     import subprocess
     import shutil
     try:
+        script_path = os.path.join(os.path.dirname(__file__), '..', 'project-3_construction', 'ppe_detection.py')
         result = subprocess.run([
             sys.executable,
-            'project-3_construction/ppe_detection.py',
+            script_path,
             '--input', filepath,
             '--output', processed_path
         ], capture_output=True, text=True, check=True, cwd=os.getcwd())
@@ -190,9 +193,10 @@ def detect_poker():
     import re
     import shutil
     try:
+        script_path = os.path.join(os.path.dirname(__file__), '..', 'project-4_poker_card_detection', 'PokerHandDetector.py')
         result = subprocess.run([
             sys.executable,
-            'project-4_poker_card_detection/PokerHandDetector.py',
+            script_path,
             '--input', filepath,
             '--output', processed_path
         ], capture_output=True, text=True, check=True, cwd=os.getcwd())
